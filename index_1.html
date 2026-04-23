@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tic Tac Toe</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f7f7f7;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #app {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid #e0e0e0;
+      padding: 2rem 2.5rem;
+      width: 420px;
+      text-align: center;
+    }
+
+    /* ── Setup screen ── */
+    #setup h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .player-input-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .player-input-wrap label {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 99px;
+    }
+
+    .lx { background: #FCEBEB; color: #A32D2D; }
+    .lo { background: #E6F1FB; color: #0C447C; }
+
+    .player-input-wrap input {
+      width: 160px;
+      border: 1.5px solid #d0d0d0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #fff;
+      color: #1a1a1a;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .player-input-wrap input:focus { border-color: #E24B4A; }
+
+    #start-btn {
+      margin-top: 0.25rem;
+      border: 1.5px solid #d0d0d0;
+      background: #1a1a1a;
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 36px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+
+    #start-btn:hover { background: #333; }
+
+    /* ── Game screen ── */
+    #game { display: none; }
+
+    #players-bar {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 1.25rem;
+    }
+
+    .p-card {
+      flex: 1;
+      max-width: 130px;
+      border-radius: 12px;
+      border: 2px solid transparent;
+      padding: 10px 12px;
+      background: #f5f5f5;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .p-card.active-x { border-color: #E24B4A; background: #FCEBEB; }
+    .p-card.active-o { border-color: #378ADD; background: #E6F1FB; }
+
+    .p-card-label { font-size: 11px; font-weight: 600; color: #888; margin-bottom: 3px; }
+    .p-card.active-x .p-card-label { color: #A32D2D; }
+    .p-card.active-o .p-card-label { color: #0C447C; }
+
+    .p-card-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a1a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .p-card-score { font-size: 24px; font-weight: 700; margin-top: 2px; color: #1a1a1a; }
+    .p-card.active-x .p-card-score { color: #E24B4A; }
+    .p-card.active-o .p-card-score { color: #378ADD; }
+
+    .draws-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      background: #f5f5f5;
+      border-radius: 10px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .draws-card span:first-child { font-size: 11px; color: #888; }
+    .draws-card span:last-child  { font-size: 24px; font-weight: 700; color: #1a1a1a; }
+
+    /* ── Status bar ── */
+    #status-bar {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 1rem;
+      min-height: 22px;
+      font-weight: 500;
+    }
+
+    #status-bar .sx { color: #A32D2D; font-weight: 700; }
+    #status-bar .so { color: #0C447C; font-weight: 700; }
+
+    /* ── Board ── */
+    #board {
+      display: grid;
+      grid-template-columns: repeat(3, 90px);
+      grid-template-rows: repeat(3, 90px);
+      gap: 8px;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+    }
+
+    .cell {
+      width: 90px;
+      height: 90px;
+      border-radius: 10px;
+      border: 2px solid #c0c0c0;
+      background: #efefef;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+      font-weight: 700;
+      transition: background 0.1s, border-color 0.1s, transform 0.08s;
+      user-select: none;
+      color: transparent;
+    }
+
+    .cell:hover:not(.taken) {
+      background: #e2e2e2;
+      border-color: #aaaaaa;
+    }
+
+    .cell:active:not(.taken) { transform: scale(0.93); }
+
+    .cell.x { color: #E24B4A; background: #FCEBEB; border-color: #F09595; cursor: default; }
+    .cell.o { color: #378ADD; background: #E6F1FB; border-color: #85B7EB; cursor: default; }
+    .cell.taken { cursor: default; }
+
+    .cell.win.x { background: #F7C1C1; border-color: #E24B4A; border-width: 3px; }
+    .cell.win.o { background: #B5D4F4; border-color: #185FA5; border-width: 3px; }
+
+    /* ── Buttons ── */
+    .btn-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 1.25rem; }
+
+    .btn {
+      border: 1.5px solid #d0d0d0;
+      background: transparent;
+      color: #1a1a1a;
+      border-radius: 8px;
+      padding: 8px 22px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.12s;
+    }
+
+    .btn:hover { background: #f0f0f0; }
+    .btn.primary { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+    .btn.primary:hover { background: #333; }
+
+    /* ── Move history ── */
+    #move-log { text-align: left; }
+    #move-log-title { font-size: 12px; color: #888; font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    #move-list {
+      list-style: none;
+      padding: 0;
+      max-height: 100px;
+      overflow-y: auto;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      padding: 4px 8px;
+      background: #fafafa;
+    }
+
+    #move-list li {
+      font-size: 12px;
+      color: #555;
+      padding: 3px 0;
+      border-bottom: 0.5px solid #eeeeee;
+    }
+
+    #move-list li:last-child { border-bottom: none; }
+    #move-list li .mx { color: #E24B4A; font-weight: 700; }
+    #move-list li .mo { color: #185FA5; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- Setup Screen -->
+  <div id="setup">
+    <h2>Tic Tac Toe</h2>
+    <div class="input-row">
+      <div class="player-input-wrap">
+        <label class="lx">Player X</label>
+        <input id="inp1" type="text" placeholder="Player 1 name" maxlength="16"/>
+      </div>
+      <div class="player-input-wrap">
+        <label class="lo">Player O</label>
+        <input id="inp2" type="text" placeholder="Player 2 name" maxlength="16"/>
+      </div>
+    </div>
+    <button id="start-btn">Start Game</button>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game">
+    <div id="players-bar">
+      <div class="p-card" id="card-x">
+        <div class="p-card-label">Player X</div>
+        <div class="p-card-name" id="name-x">-</div>
+        <div class="p-card-score" id="score-x">0</div>
+      </div>
+      <div class="draws-card">
+        <span>Draws</span>
+        <span id="score-d">0</span>
+      </div>
+      <div class="p-card" id="card-o">
+        <div class="p-card-label">Player O</div>
+        <div class="p-card-name" id="name-o">-</div>
+        <div class="p-card-score" id="score-o">0</div>
+      </div>
+    </div>
+
+    <div id="status-bar"></div>
+    <div id="board"></div>
+
+    <div class="btn-row">
+      <button class="btn primary" id="new-game-btn">New Round</button>
+      <button class="btn" id="change-names-btn">Change Names</button>
+    </div>
+
+    <div id="move-log">
+      <div id="move-log-title">Move History</div>
+      <ul id="move-list"></ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const WINS = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  let board, current, gameOver, moveCount;
+  let names = { X:'', O:'' };
+  let scores = { X:0, O:0, D:0 };
+
+  function $(id) { return document.getElementById(id); }
+
+  function startGame() {
+    const n1 = $('inp1').value.trim() || 'Player 1';
+    const n2 = $('inp2').value.trim() || 'Player 2';
+    names.X = n1; names.O = n2;
+    $('name-x').textContent = n1;
+    $('name-o').textContent = n2;
+    scores = { X:0, O:0, D:0 };
+    $('score-x').textContent = 0;
+    $('score-o').textContent = 0;
+    $('score-d').textContent = 0;
+    $('setup').style.display = 'none';
+    $('game').style.display  = 'block';
+    newRound();
+  }
+
+  function newRound() {
+    board = Array(9).fill(null);
+    current = 'X';
+    gameOver = false;
+    moveCount = 0;
+    $('move-list').innerHTML = '';
+    renderBoard();
+    updateCards();
+    setStatus('turn');
+  }
+
+  function setStatus(type, winner) {
+    const el = $('status-bar');
+    if (type === 'turn') {
+      el.innerHTML = `<span class="s${current.toLowerCase()}">${names[current]} (${current})</span>'s turn`;
+    } else if (type === 'win') {
+      el.innerHTML = `<span class="s${winner.toLowerCase()}">${names[winner]} (${winner}) wins!</span>`;
+    } else {
+      el.innerHTML = `It's a draw!`;
+    }
+  }
+
+  function updateCards() {
+    $('card-x').className = 'p-card' + (current === 'X' && !gameOver ? ' active-x' : '');
+    $('card-o').className = 'p-card' + (current === 'O' && !gameOver ? ' active-o' : '');
+  }
+
+  function checkWin(sym) {
+    for (const [a,b,c] of WINS) {
+      if (board[a] === sym && board[b] === sym && board[c] === sym) return [a,b,c];
+    }
+    return null;
+  }
+
+  function renderBoard() {
+    const bEl = $('board');
+    bEl.innerHTML = '';
+    board.forEach((val, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'cell' + (val ? ' taken ' + val.toLowerCase() : '');
+      cell.textContent = val || '';
+      cell.addEventListener('click', () => handleClick(i));
+      bEl.appendChild(cell);
+    });
+  }
+
+  function handleClick(i) {
+    if (gameOver || board[i]) return;
+    board[i] = current;
+    moveCount++;
+    const sym = current;
+    const li = document.createElement('li');
+    li.innerHTML = `#${moveCount} <span class="m${sym.toLowerCase()}">${names[sym]} (${sym})</span> → cell ${i+1}`;
+    $('move-list').prepend(li);
+    renderBoard();
+    const win = checkWin(current);
+    if (win) {
+      gameOver = true;
+      scores[current]++;
+      $('score-' + current.toLowerCase()).textContent = scores[current];
+      win.forEach(idx => {
+        document.querySelectorAll('.cell')[idx].classList.add('win');
+      });
+      updateCards();
+      setStatus('win', current);
+    } else if (board.every(Boolean)) {
+      gameOver = true;
+      scores.D++;
+      $('score-d').textContent = scores.D;
+      updateCards();
+      setStatus('draw');
+    } else {
+      current = current === 'X' ? 'O' : 'X';
+      updateCards();
+      setStatus('turn');
+    }
+  }
+
+  $('start-btn').addEventListener('click', startGame);
+  $('inp1').addEventListener('keydown', e => { if (e.key === 'Enter') $('inp2').focus(); });
+  $('inp2').addEventListener('keydown', e => { if (e.key === 'Enter') startGame(); });
+  $('new-game-btn').addEventListener('click', newRound);
+  $('change-names-btn').addEventListener('click', () => {
+    $('game').style.display  = 'none';
+    $('setup').style.display = 'block';
+  });
+</script>
+
+</body>
+</html>
